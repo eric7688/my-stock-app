@@ -1,7 +1,6 @@
-pythonimport streamlit as st
+import streamlit as st
 import yfinance as yf
 import pandas as pd
-import pandas_ta as ta
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
@@ -33,26 +32,33 @@ if ticker_input:
         # Get live price data
         todays_data = ticker_data.history(period="1d", interval="30m")
         if not todays_data.empty:
-            current_price = todays_data['Close'].iloc[-1]
-            price_change = current_price - todays_data['Open'].iloc[0]
+            current_price = float(todays_data['Close'].iloc[-1])
+            open_price = float(todays_data['Open'].iloc[0])
+            price_change = current_price - open_price
             st.metric(
                 label=f"Current Price ({ticker_input}) — Updates Every 30m", 
                 value=f"${current_price:.2f}", 
                 delta=f"${price_change:.2f}"
             )
         else:
-            current_price = ticker_data.fast_info['last_price']
+            current_price = float(ticker_data.fast_info['last_price'])
             st.metric(label=f"Last Close ({ticker_input})", value=f"${current_price:.2f}")
 
         # 4. Fetch Historical Daily Data for MAs & RSI
         hist_df = ticker_data.history(period="2y", interval="1d")
         
         if len(hist_df) >= 200:
-            # Calculate technical parameters
+            # Calculate technical parameters using explicit rolling calculations
             hist_df['MA20'] = hist_df['Close'].rolling(window=20).mean()
             hist_df['MA50'] = hist_df['Close'].rolling(window=50).mean()
             hist_df['MA200'] = hist_df['Close'].rolling(window=200).mean()
-            hist_df['RSI'] = ta.rsi(hist_df['Close'], length=14)
+            
+            # Pure mathematical RSI Calculation
+            delta = hist_df['Close'].diff()
+            gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
+            loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
+            rs = gain / loss
+            hist_df['RSI'] = 100 - (100 / (1 + rs))
             
             # Filter layout to show the most recent 90 days for mobile visibility
             plot_df = hist_df.tail(90)
@@ -111,4 +117,4 @@ if ticker_input:
         else:
             st.error("Not enough historical data available for this asset symbol.")
     except Exception as e:
-        st.error(f"Ticker symbol not recognized or API issue. Error Details: 
+        st.error(f"Ticker symbol not recognized or API issue. Error Details: {e}")

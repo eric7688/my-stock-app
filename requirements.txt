@@ -1,4 +1,1 @@
-textstreamlit
-yfinance
-pandas
-plotly
+

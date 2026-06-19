@@ -1,5 +1,0 @@
-textstreamlit
-yfinance
-pandas
-pandas-ta
-plotly

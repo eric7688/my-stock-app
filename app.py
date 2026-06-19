@@ -41,7 +41,9 @@ if ticker_input:
                 delta=f"${price_change:.2f}"
             )
         else:
-            current_price = float(ticker_data.fast_info['last_price'])
+            # Fallback using history if fast_info is restricted
+            fallback_data = ticker_data.history(period="1d")
+            current_price = float(fallback_data['Close'].iloc[-1])
             st.metric(label=f"Last Close ({ticker_input})", value=f"${current_price:.2f}")
 
         # 4. Fetch Historical Daily Data for MAs & RSI
@@ -118,4 +120,3 @@ if ticker_input:
             st.error("Not enough historical data available for this asset symbol.")
     except Exception as e:
         st.error(f"Ticker symbol not recognized or API issue. Error Details: {e}")
-        

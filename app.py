@@ -29,7 +29,7 @@ if ticker_input:
         # 3. Background Real-Time Price Fetch
         ticker_data = yf.Ticker(ticker_input)
         
-        # Get live price data
+        # Get live price data using history to avoid fast_info cloud server bugs
         todays_data = ticker_data.history(period="1d", interval="30m")
         if not todays_data.empty:
             current_price = float(todays_data['Close'].iloc[-1])
@@ -41,7 +41,7 @@ if ticker_input:
                 delta=f"${price_change:.2f}"
             )
         else:
-            # Fallback using history if fast_info is restricted
+            # Fallback historical data fetch if market is fully closed
             fallback_data = ticker_data.history(period="1d")
             current_price = float(fallback_data['Close'].iloc[-1])
             st.metric(label=f"Last Close ({ticker_input})", value=f"${current_price:.2f}")

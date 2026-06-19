@@ -118,3 +118,4 @@ if ticker_input:
             st.error("Not enough historical data available for this asset symbol.")
     except Exception as e:
         st.error(f"Ticker symbol not recognized or API issue. Error Details: {e}")
+        
